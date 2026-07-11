@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #00A2EA;
+  --background: #f2f2f2;
+  --text-primary: #2E353D;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Simulasi mobile container */
+.mobile-container {
+  max-width: 430px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #f2f2f2;
+  position: relative;
+  overflow-x: clip; /* clip tidak putus position:sticky, hidden putus */
+}
+
+@media (min-width: 430px) {
+  body {
+    background: #e0e0e0;
+  }
+}
+
+/* Scrollbar tipis */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #DDE5E9; border-radius: 4px; }
+
+/* Animasi fade-in */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.3s ease-out both; }

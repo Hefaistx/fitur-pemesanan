@@ -1,0 +1,197 @@
+================================================================
+NARASI ALUR PENGGUNA — FITUR PEMESANAN F&B D'PARAGON
+================================================================
+Tanggal: 9 Juli 2026
+Versi: draft 1.0
+
+----------------------------------------------------------------
+CATATAN SISTEM
+----------------------------------------------------------------
+- Pemesanan hanya untuk tamu aktif D'Paragon wilayah Yogyakarta
+- Pengiriman menggunakan mekanisme jastip oleh runner
+- Jadwal pengiriman dibagi dalam periode (slot) per hari
+- Checkout properti maksimal jam 12:00 WIB
+- Pembayaran via Virtual Account BCA (tidak instan)
+
+================================================================
+CASE 1 — PENGGUNA BELUM LOGIN
+================================================================
+Akun contoh: tidak ada (akses langsung tanpa login)
+
+Alur:
+1. Pengguna membuka aplikasi, melihat dashboard
+2. Pengguna masuk ke halaman menu salah satu merchant
+3. Popup notifikasi muncul otomatis:
+   - Judul: "Masuk untuk memesan"
+   - Isi: layanan hanya untuk tamu D'Paragon Yogyakarta
+   - Tombol: "Masuk" dan "Lihat Menu"
+4. Jika pilih "Lihat Menu" → bisa scroll menu, tapi semua item
+   terkunci (ikon gembok), tidak bisa tambah ke keranjang
+5. Jika pilih "Masuk" → diarahkan ke halaman login
+
+================================================================
+CASE 2 — LOGIN, TIDAK ADA RESERVASI AKTIF
+================================================================
+Akun contoh: Sari Dewi | 6289876543210 | password123
+
+Alur:
+1. Sari login berhasil
+2. Sari membuka halaman menu merchant
+3. Popup notifikasi muncul otomatis:
+   - Judul: "Pemesanan Tidak Tersedia"
+   - Isi: hanya pelanggan dengan reservasi aktif di D'Paragon
+     wilayah Yogyakarta yang dapat memesan
+   - Tombol: "Reservasi di D'Paragon" dan "Lihat Menu"
+4. Sari bisa scroll menu tapi tidak bisa memesan
+5. Jika pilih "Reservasi di D'Paragon" → diarahkan ke halaman
+   utama untuk memulai proses reservasi
+
+================================================================
+CASE 3 — LOGIN, RESERVASI AKTIF NON-JOGJA
+================================================================
+Akun contoh: Andi Wijaya | 6285555555555 | password123
+Properti: DParagon Semarang
+
+Alur:
+1. Andi login berhasil
+2. Andi membuka halaman menu merchant
+3. Popup notifikasi muncul otomatis:
+   - Judul: "Pemesanan Tidak Tersedia"
+   - Isi: hanya pelanggan dengan reservasi aktif di D'Paragon
+     wilayah Yogyakarta yang dapat memesan
+   - Tombol: "Lihat Menu" (tidak ada tombol reservasi karena
+     sudah punya reservasi aktif, hanya beda wilayah)
+4. Andi bisa scroll menu tapi tidak bisa memesan
+
+================================================================
+CASE 4 — LOGIN, RESERVASI JOGJA 1 KAMAR, 1 MALAM
+================================================================
+Akun contoh: Rini Kusuma | 6287777777777 | password123
+Properti: D'Paragon Seturan 1, Kamar 204
+Check-in: hari ini | Check-out: besok jam 12:00
+
+Alur:
+1. Rini login berhasil
+2. Rini membuka halaman menu merchant
+3. Popup TIDAK muncul (eligible untuk pesan)
+4. Banner periode pengiriman tampil (contoh: 13:00 · 16:00 · 20:00)
+5. Rini memilih menu, tambah ke keranjang
+6. Rini ke halaman Konfirmasi Pesanan:
+   - Jadwal pengiriman: date picker muncul dengan 2 pilihan —
+     hari ini dan hari checkout (besok)
+   - Slot pengiriman hari ini: semua slot tersedia sesuai periode
+   - Slot pengiriman hari checkout: hanya slot dengan jam
+     pengiriman sebelum 12:00 yang bisa dipilih (misal: jika ada
+     slot 09:00, Rini bisa pesan untuk diantar sebelum checkout)
+   - Rincian harga: subtotal + biaya layanan
+   - Input kode voucher (opsional)
+   - Catatan (opsional)
+7. Rini tekan "Buat Pesanan & Bayar"
+8. Rini diarahkan ke halaman pembayaran VA BCA
+9. Setelah transfer, pesanan masuk ke riwayat dengan status
+   timeline: [Dibayar] → Dikonfirmasi → Dalam Perjalanan → Terkirim
+
+================================================================
+CASE 5 — LOGIN, RESERVASI JOGJA 1 KAMAR, MULTI-MALAM
+================================================================
+Akun contoh: Budi Santoso | 6281234567890 | password123
+Properti: D'Paragon Kemuning, Kamar 305
+Check-in: hari ini | Check-out: 5 hari ke depan jam 12:00
+
+Alur:
+1. Budi login berhasil
+2. Budi membuka halaman menu merchant
+3. Popup TIDAK muncul
+4. Budi memilih menu, ke halaman Konfirmasi Pesanan:
+   - Jadwal pengiriman: date picker muncul (hari ini s/d hari
+     checkout, maks 7 hari)
+   - Budi bisa pilih tanggal pengiriman berbeda
+   - Slot di hari checkout: hanya slot sebelum jam 12:00 yang
+     tersedia
+5. Alur pembayaran dan tracking sama seperti Case 4
+
+================================================================
+CASE 6 — LOGIN, 2+ RESERVASI AKTIF DI JOGJA (BEDA KAMAR)
+================================================================
+Akun contoh: (belum ada di seed — perlu ditambahkan)
+Properti: D'Paragon Kemuning, Kamar 101 DAN Kamar 102
+Contoh: keluarga yang booking 2 kamar sekaligus
+
+Alur:
+1. Pengguna login
+2. Membuka halaman menu merchant, popup tidak muncul
+3. Ke halaman Konfirmasi Pesanan:
+   - Muncul section "Antar ke Kamar" dengan pilihan:
+     [Kamar 101]  [Kamar 102]
+   - Pengguna memilih kamar tujuan pengiriman
+   - Tanggal mengacu pada reservasi utama (kamar pertama)
+4. Alur selanjutnya sama seperti Case 4/5
+
+CATATAN TEKNIS:
+- Jika check-in/check-out dua kamar berbeda, sistem saat ini
+  menggunakan tanggal dari reservasi pertama. Perlu ditangani
+  lebih lanjut jika durasi berbeda.
+
+================================================================
+CASE 7 — LOGIN, 1 RESERVASI JOGJA + 1 RESERVASI NON-JOGJA
+================================================================
+Akun contoh: (belum ada di seed)
+Properti A: D'Paragon Seturan 2 (Jogja) — aktif
+Properti B: DParagon Malang — aktif
+
+Alur:
+1. Pengguna login
+2. isInJogja = TRUE (karena salah satu reservasi di Jogja)
+3. Membuka halaman menu → popup tidak muncul, bisa memesan
+4. Di halaman Konfirmasi Pesanan:
+   - Section "Antar ke Kamar" hanya menampilkan kamar Jogja
+   - Kamar Malang TIDAK muncul (tidak bisa diantar ke sana)
+5. Tanggal mengacu pada reservasi Jogja
+
+CATATAN TEKNIS (BUG YANG PERLU DIFIX):
+- Saat ini auth.ts memeriksa isInJogja hanya dari reservasi
+  PERTAMA. Jika urutan di DB menempatkan reservasi Malang lebih
+  dulu, pengguna ini akan dianggap non-Jogja padahal punya
+  reservasi Jogja juga.
+- Fix: cek isInJogja dari SEMUA reservasi aktif, bukan hanya
+  yang pertama.
+- Fix: filter rooms di checkout hanya tampilkan kamar dari
+  properti Jogja.
+
+================================================================
+CASE 8 — LOGIN, 2+ RESERVASI AKTIF SEMUA NON-JOGJA
+================================================================
+Akun contoh: (belum ada di seed)
+Properti: DParagon Malang + DParagon Semarang
+
+Alur:
+1. Pengguna login
+2. isInJogja = FALSE (semua reservasi non-Jogja)
+3. Membuka halaman menu → popup muncul "Pemesanan Tidak Tersedia"
+4. Tidak bisa memesan dari manapun
+
+================================================================
+RINGKASAN MATRIKS AKSES
+================================================================
+
+Kondisi                              | Bisa Pesan | Room Selector
+-------------------------------------|------------|---------------
+Belum login                          | Tidak      | -
+Login, no reservasi                  | Tidak      | -
+Login, reservasi non-Jogja saja      | Tidak      | -
+Login, 1 reservasi Jogja             | Ya         | Tidak (1 kamar)
+Login, 2+ reservasi Jogja            | Ya         | Ya
+Login, Jogja + non-Jogja             | Ya         | Hanya kamar Jogja
+Login, 2+ reservasi semua non-Jogja  | Tidak      | -
+
+================================================================
+ITEM YANG PERLU DITINDAKLANJUTI
+================================================================
+[ ] Fix auth.ts: isInJogja = cek semua reservasi, bukan hanya pertama
+[ ] Fix checkout: room selector filter hanya kamar Jogja
+[ ] Fix checkout: checkIn/checkOut ambil dari reservasi Jogja
+    (bukan reservasi pertama jika multi-properti)
+[ ] Tambah seed data untuk Case 6 dan Case 7 (testing)
+[ ] Sistem voucher: implementasi tabel & validasi backend
+
+================================================================
