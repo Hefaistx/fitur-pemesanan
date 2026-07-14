@@ -203,24 +203,17 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
       <div className="mx-4 mt-3 bg-white rounded-2xl shadow-sm px-4 py-4 space-y-3">
         <p className="text-[13px] font-semibold text-text-primary">Info Pengiriman</p>
 
-        <div className="flex gap-3">
-          <div className="flex flex-col items-center gap-1 pt-0.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0" />
-            <div className="w-px flex-1 bg-grey" />
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0" />
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[12px] text-text-secondary">Dari</p>
+            <p className="text-[12px] font-medium text-text-primary">{order.storeName}</p>
           </div>
-          <div className="flex-1 space-y-3">
-            <div>
-              <p className="text-[11px] text-text-secondary">Diambil dari</p>
-              <p className="text-[13px] font-medium text-text-primary mt-0.5">{order.storeName}</p>
-            </div>
-            <div>
-              <p className="text-[11px] text-text-secondary">Diantar ke</p>
-              <p className="text-[13px] font-medium text-text-primary mt-0.5">
-                {order.propertyName ?? 'D\'Paragon'}
-                {order.roomNumber && <span className="text-text-secondary font-normal"> · Kamar {order.roomNumber}</span>}
-              </p>
-            </div>
+          <div className="flex items-center justify-between">
+            <p className="text-[12px] text-text-secondary">Ke</p>
+            <p className="text-[12px] font-medium text-text-primary">
+              {order.propertyName ?? 'D\'Paragon'}
+              {order.roomNumber && <span className="text-text-secondary font-normal"> · Kamar {order.roomNumber}</span>}
+            </p>
           </div>
         </div>
 
