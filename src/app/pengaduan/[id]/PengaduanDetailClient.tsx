@@ -40,7 +40,7 @@ interface Props {
 
 export default function PengaduanDetailClient({ complaint, isNew }: Props) {
   const router = useRouter();
-  const meta = KAT_META[complaint.jenis] ?? { icon: '📝', color: 'bg-gray-50' };
+  const meta = KAT_META[complaint.jenis] ?? { icon: '📝' };
   const statusMeta = STATUS_META[complaint.status] ?? { label: complaint.status, cls: 'bg-gray-100 text-gray-600' };
   const activeIdx = activeStepIdx(complaint.status);
   const isDitolak = complaint.status === 'ditolak';
@@ -66,7 +66,7 @@ export default function PengaduanDetailClient({ complaint, isNew }: Props) {
       <div className="mx-4 mt-4 bg-white rounded-2xl shadow-sm p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl ${meta.color} flex items-center justify-center text-2xl shrink-0`}>
+            <div className="w-12 h-12 rounded-xl bg-background flex items-center justify-center text-2xl shrink-0">
               {meta.icon}
             </div>
             <div>
