@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { stores } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function PATCH(req: NextRequest) {
   const { storeId, groupId } = await req.json();
   const [store] = await db
