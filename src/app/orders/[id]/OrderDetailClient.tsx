@@ -21,6 +21,8 @@ interface OrderDetail {
   deliveryTime: string | null;
   vaNumber: string | null;
   createdAt: string;
+  runnerRating: number | null;
+  runnerReview: string | null;
   items: { id: number; itemName: string; quantity: number; priceAtOrder: number }[];
 }
 
@@ -83,6 +85,10 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showProof, setShowProof] = useState(false);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [review, setReview] = useState('');
+  const [submittingRating, setSubmittingRating] = useState(false);
 
   useEffect(() => {
     fetch(`/api/orders/${orderId}`)
@@ -242,6 +248,80 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
           </div>
         )}
       </div>
+
+      {/* Rating pengiriman */}
+      {order.deliveryStatus === 'delivered' && (
+        <div className="mx-4 mt-3 bg-white rounded-2xl shadow-sm p-4">
+          {order.runnerRating ? (
+            // Sudah dirating — tampil read-only
+            <div>
+              <p className="text-[13px] font-semibold text-text-primary mb-2">Penilaianmu</p>
+              <div className="flex gap-1 mb-2">
+                {[1,2,3,4,5].map(s => (
+                  <span key={s} className={`text-2xl ${s <= order.runnerRating! ? 'text-yellow-400' : 'text-grey'}`}>★</span>
+                ))}
+              </div>
+              {order.runnerReview && (
+                <p className="text-[12px] text-text-secondary italic">"{order.runnerReview}"</p>
+              )}
+            </div>
+          ) : (
+            // Belum dirating — form
+            <div>
+              <p className="text-[13px] font-semibold text-text-primary mb-1">Beri Penilaian Pengiriman</p>
+              <p className="text-[11px] text-text-secondary mb-3">Bagaimana pengalaman pengirimanmu?</p>
+
+              {/* Bintang */}
+              <div className="flex gap-1 mb-3">
+                {[1,2,3,4,5].map(s => (
+                  <button
+                    key={s}
+                    onMouseEnter={() => setHoverRating(s)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    onClick={() => setSelectedRating(s)}
+                    className="text-3xl transition-transform active:scale-110"
+                  >
+                    <span className={s <= (hoverRating || selectedRating) ? 'text-yellow-400' : 'text-grey'}>★</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Komentar */}
+              <textarea
+                value={review}
+                onChange={e => setReview(e.target.value)}
+                placeholder="Tulis komentar (opsional)..."
+                rows={2}
+                className="w-full text-[12px] text-text-primary bg-background rounded-xl px-3 py-2 resize-none outline-none border border-grey focus:border-primary transition-colors mb-3"
+              />
+
+              <button
+                disabled={!selectedRating || submittingRating}
+                onClick={async () => {
+                  if (!selectedRating) return;
+                  setSubmittingRating(true);
+                  try {
+                    const res = await fetch(`/api/orders/${order.id}/rating`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ rating: selectedRating, review: review || null }),
+                    });
+                    if (res.ok) {
+                      const data = await res.json();
+                      setOrder(prev => prev ? { ...prev, runnerRating: data.runnerRating, runnerReview: data.runnerReview } : prev);
+                    }
+                  } finally {
+                    setSubmittingRating(false);
+                  }
+                }}
+                className="w-full bg-primary text-white font-semibold text-[13px] py-3 rounded-xl active:opacity-80 disabled:opacity-40"
+              >
+                {submittingRating ? 'Mengirim...' : 'Kirim Penilaian'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Pesan lagi */}
       <div className="mx-4 mt-4">

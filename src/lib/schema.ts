@@ -87,6 +87,8 @@ export const orders = pgTable('orders', {
   paymentStatus: varchar('payment_status', { length: 20 }).default('pending').notNull(), // pending | paid | expired
   deliveryStatus: varchar('delivery_status', { length: 20 }),  // null | confirmed | delivering | delivered
   deliveryProofUrl: text('delivery_proof_url'),
+  runnerRating: integer('runner_rating'),       // 1–5, null = belum dirating
+  runnerReview: text('runner_review'),
   vaNumber: varchar('va_number', { length: 20 }),
   paymentDeadline: timestamp('payment_deadline'),
   deliveryDate: varchar('delivery_date', { length: 10 }),   // "2026-07-08"
@@ -151,7 +153,26 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   menuItem: one(menuItems, { fields: [orderItems.menuItemId], references: [menuItems.id] }),
 }));
 
+export const complaints = pgTable('complaints', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  reservationId: integer('reservation_id').notNull().references(() => reservations.id),
+  jenis: varchar('jenis', { length: 50 }).notNull(),
+  kronologi: text('kronologi').notNull(),
+  status: varchar('status', { length: 30 }).default('baru').notNull(), // baru | proses | selesai | ditolak
+  propertyName: text('property_name').notNull(),
+  roomNumber: varchar('room_number', { length: 20 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const complaintsRelations = relations(complaints, ({ one }) => ({
+  user: one(users, { fields: [complaints.userId], references: [users.id] }),
+  reservation: one(reservations, { fields: [complaints.reservationId], references: [reservations.id] }),
+}));
+
 // --- Types ---
+export type Complaint = typeof complaints.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Reservation = typeof reservations.$inferSelect;
 export type Store = typeof stores.$inferSelect;

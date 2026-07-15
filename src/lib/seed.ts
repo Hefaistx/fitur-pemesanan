@@ -5,7 +5,7 @@ import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 import bcrypt from 'bcryptjs';
-import { sql } from 'drizzle-orm';
+import { sql, eq } from 'drizzle-orm';
 
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
@@ -382,6 +382,42 @@ async function seed() {
   ]);
 
   console.log('✅ Menu items seeded');
+
+  // ── Pesanan selesai untuk demo/test fitur rating ──
+  const campagnaItems = await db
+    .select()
+    .from(schema.menuItems)
+    .where(eq(schema.menuItems.storeId, campagna.id))
+    .limit(3);
+
+  const orderTotal = campagnaItems.reduce((sum, item) => sum + item.price, 0);
+
+  const [completedOrder] = await db
+    .insert(schema.orders)
+    .values({
+      userId: budi.id,
+      storeId: campagna.id,
+      reservationId: null,
+      totalAmount: orderTotal,
+      notes: 'Pesanan demo — sudah dikirim, belum dirating',
+      paymentStatus: 'paid',
+      deliveryStatus: 'delivered',
+      deliveryDate: new Date().toISOString().slice(0, 10),
+      deliveryTime: '13:00',
+    })
+    .returning();
+
+  await db.insert(schema.orderItems).values(
+    campagnaItems.map(item => ({
+      orderId: completedOrder.id,
+      menuItemId: item.id,
+      quantity: 1,
+      priceAtOrder: item.price,
+      itemName: item.name,
+    }))
+  );
+
+  console.log(`✅ Completed order seeded (id=${completedOrder.id}) — login sebagai Budi untuk test rating`);
   console.log('');
   console.log('🎉 Seed complete!\n');
   console.log('Akun demo:');

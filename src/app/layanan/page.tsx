@@ -11,6 +11,7 @@ const KULINER = [
 const LAYANAN = [
   { icon: '📅', label: 'Perpanjang\nKamar',  href: null },
   { icon: '🛎️', label: 'Layanan\nKamar',    href: null },
+  { icon: '🚨', label: 'Pengaduan',           href: '/pengaduan' },
 ];
 
 export default function LayananPage() {

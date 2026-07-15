@@ -16,6 +16,8 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       storeSlug: stores.slug,
       propertyName: reservations.propertyName,
       roomNumber: reservations.roomNumber,
+      runnerRating: orders.runnerRating,
+      runnerReview: orders.runnerReview,
     })
     .from(orders)
     .innerJoin(stores, eq(orders.storeId, stores.id))

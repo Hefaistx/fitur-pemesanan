@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi — Pengaduan Tamu</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #e8edf5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* ── SCREEN NAV (debug) ── */
+    .screen-nav {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-bottom: 20px; justify-content: center;
+    }
+    .screen-nav button {
+      background: #fff; border: 1px solid #c8d0df;
+      padding: 5px 11px; border-radius: 20px;
+      font-size: 11px; cursor: pointer; color: #3d4f68;
+      transition: all .15s;
+    }
+    .screen-nav button.active { background: #1b2a47; color: #fff; border-color: #1b2a47; }
+    .screen-nav button:hover:not(.active) { background: #f0f3f8; }
+
+    /* ── PHONE SHELL ── */
+    .phone {
+      width: 375px;
+      background: #fff;
+      border-radius: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 0 0 8px #1b2a47;
+      overflow: hidden;
+      min-height: 760px;
+      position: relative;
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: #1b2a47;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 20px 6px;
+      font-size: 11px; color: #fff; font-weight: 600;
+    }
+    .status-bar .right { display: flex; gap: 8px; align-items: center; }
+
+    /* ── SCREENS ── */
+    .screen { display: none; flex-direction: column; min-height: 700px; }
+    .screen.active { display: flex; }
+
+    /* App header */
+    .app-header {
+      background: #1b2a47;
+      padding: 14px 20px 18px;
+      color: #fff;
+    }
+    .app-header .greeting { font-size: 12px; color: #8fa8cc; }
+    .app-header .name { font-size: 16px; font-weight: 700; margin-top: 2px; }
+    .app-header .stay-info {
+      margin-top: 10px;
+      background: rgba(255,255,255,.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .app-header .stay-info i { font-size: 18px; color: #6dbfff; }
+    .app-header .stay-info .detail { font-size: 11px; color: #c5d8ef; line-height: 1.6; }
+    .app-header .stay-info .detail b { color: #fff; font-size: 12px; }
+
+    /* Sub-header (inside page) */
+    .sub-header {
+      background: #1b2a47;
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      color: #fff;
+    }
+    .sub-header .back { font-size: 18px; cursor: pointer; color: #aab8cc; }
+    .sub-header .title { font-size: 14px; font-weight: 700; }
+    .sub-header .subtitle { font-size: 11px; color: #7a94b8; margin-top: 1px; }
+
+    /* Body scroll area */
+    .screen-body { flex: 1; background: #f5f7fa; overflow-y: auto; }
+
+    /* Quick actions grid */
+    .section-label {
+      padding: 14px 16px 8px;
+      font-size: 11px; font-weight: 700; color: #8592a6; letter-spacing: .5px;
+    }
+    .quick-actions {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 0; padding: 0 12px 8px;
+    }
+    .qa-item {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 10px 4px; cursor: pointer; border-radius: 12px;
+      transition: background .15s;
+    }
+    .qa-item:hover { background: #eef2f8; }
+    .qa-item .icon-wrap {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 6px;
+    }
+    .qa-item .label { font-size: 10px; color: #3d4f68; text-align: center; font-weight: 500; line-height: 1.3; }
+    .qa-item.highlight .icon-wrap { box-shadow: 0 0 0 3px #fde68a; }
+    .qa-item.highlight .label { color: #1b2a47; font-weight: 700; }
+
+    /* Banner card */
+    .banner-card {
+      margin: 8px 16px;
+      background: linear-gradient(135deg, #1e3a6e, #2d5ea8);
+      border-radius: 14px;
+      padding: 14px 16px;
+      color: #fff;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .banner-card i { font-size: 28px; color: #6dbfff; }
+    .banner-card .text .t1 { font-size: 12px; color: #a8c8f0; }
+    .banner-card .text .t2 { font-size: 14px; font-weight: 700; margin-top: 2px; }
+    .banner-card .text .t3 { font-size: 11px; color: #7aabdf; margin-top: 2px; }
+
+    /* Info card */
+    .info-card {
+      background: #fff; border-radius: 12px;
+      margin: 8px 16px; padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .info-card .card-title {
+      font-size: 12px; font-weight: 700; color: #1b2a47;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    }
+    .info-card .card-title i { color: #3a7bd5; }
+    .info-row {
+      display: flex; justify-content: space-between;
+      padding: 5px 0; border-bottom: 1px solid #f0f2f5; font-size: 12px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .lbl { color: #8592a6; }
+    .info-row .val { color: #1b2a47; font-weight: 600; }
+
+    /* Kategori grid */
+    .kategori-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; padding: 12px 16px;
+    }
+    .kat-item {
+      background: #fff; border-radius: 12px;
+      padding: 14px 12px;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+      cursor: pointer; border: 2px solid transparent;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      transition: all .15s;
+    }
+    .kat-item:hover { border-color: #3a7bd5; background: #f0f6ff; }
+    .kat-item.selected { border-color: #3a7bd5; background: #eef4ff; }
+    .kat-item.disabled { opacity: .45; cursor: not-allowed; }
+    .kat-item.disabled:hover { border-color: transparent; background: #fff; }
+    .kat-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+    .kat-name { font-size: 12px; font-weight: 600; color: #1b2a47; line-height: 1.3; }
+    .kat-status { font-size: 10px; color: #ef4444; font-weight: 500; }
+
+    /* Notice */
+    .notice {
+      margin: 8px 16px; padding: 10px 12px;
+      border-radius: 8px; font-size: 11.5px;
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .notice.info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .notice.warn { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+    .notice.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .notice i { margin-top: 1px; flex-shrink: 0; }
+
+    /* Form */
+    .form-group { padding: 0 16px 12px; }
+    .form-label { font-size: 11.5px; font-weight: 700; color: #3d4f68; margin-bottom: 6px; display: block; }
+    .form-label span { color: #ef4444; }
+    .form-textarea {
+      width: 100%; border: 1.5px solid #dde2ec; border-radius: 10px;
+      padding: 10px 12px; font-size: 13px; font-family: inherit;
+      resize: none; color: #1b2a47; line-height: 1.5;
+      transition: border-color .15s;
+    }
+    .form-textarea:focus { outline: none; border-color: #3a7bd5; }
+    .char-count { font-size: 10px; color: #8592a6; text-align: right; margin-top: 4px; }
+
+    /* Selected kategori chip */
+    .kat-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #eef4ff; border: 1px solid #bfdbfe;
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 12px; color: #1d4ed8; font-weight: 600;
+    }
+
+    /* Bottom CTA */
+    .bottom-cta {
+      padding: 12px 16px 24px;
+      background: #fff;
+      border-top: 1px solid #f0f2f5;
+    }
+    .btn-primary {
+      width: 100%; padding: 13px;
+      background: #1b2a47; color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-primary:hover { background: #253d65; }
+    .btn-primary:disabled { background: #b0bac9; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; padding: 11px;
+      background: transparent; color: #3d4f68;
+      border: 1.5px solid #dde2ec; border-radius: 12px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      margin-top: 8px; transition: background .15s;
+    }
+    .btn-secondary:hover { background: #f5f7fa; }
+
+    /* Success screen */
+    .success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: #dcfce7;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; color: #16a34a;
+      margin: 32px auto 16px;
+    }
+    .success-title { text-align: center; font-size: 17px; font-weight: 700; color: #1b2a47; }
+    .success-sub { text-align: center; font-size: 12.5px; color: #6b7a8d; margin-top: 6px; padding: 0 24px; line-height: 1.6; }
+    .id-badge {
+      text-align: center; margin: 16px auto;
+      background: #f0f4ff; border: 1px dashed #93afd8;
+      border-radius: 10px; padding: 12px;
+      font-size: 11px; color: #6b7a8d;
+      width: fit-content; min-width: 200px;
+    }
+    .id-badge .id-val { font-size: 16px; font-weight: 700; color: #1b2a47; margin-top: 4px; letter-spacing: 1px; }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-block; padding: 2px 10px;
+      border-radius: 20px; font-size: 10.5px; font-weight: 700;
+    }
+    .s-baru { background: #dbeafe; color: #1d4ed8; }
+    .s-proses { background: #fef3c7; color: #92400e; }
+    .s-selesai { background: #dcfce7; color: #15803d; }
+    .s-ditolak { background: #fee2e2; color: #991b1b; }
+
+    /* Riwayat list */
+    .riwayat-item {
+      background: #fff; border-radius: 12px;
+      margin: 8px 16px; padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      cursor: pointer;
+    }
+    .riwayat-item .ri-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .ri-jenis { font-size: 13px; font-weight: 700; color: #1b2a47; }
+    .ri-id { font-size: 10px; color: #8592a6; margin-top: 2px; }
+    .ri-ket { font-size: 11.5px; color: #5a6a82; margin-top: 8px; line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ri-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .ri-date { font-size: 10px; color: #8592a6; }
+
+    /* No access screen */
+    .no-access {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 24px; text-align: center;
+    }
+    .no-access-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: #f0f2f5; display: flex; align-items: center; justify-content: center;
+      font-size: 28px; color: #b0bac9; margin-bottom: 16px;
+    }
+    .no-access h3 { font-size: 15px; color: #1b2a47; font-weight: 700; }
+    .no-access p { font-size: 12px; color: #6b7a8d; margin-top: 8px; line-height: 1.6; }
+
+    /* Divider */
+    .divider { height: 8px; background: #f0f2f5; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      background: #fff; border-top: 1px solid #e8ecf3;
+      display: flex; padding: 8px 0 16px;
+    }
+    .bn-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; cursor: pointer; padding: 4px 0;
+    }
+    .bn-item i { font-size: 18px; color: #b0bac9; }
+    .bn-item span { font-size: 9px; color: #b0bac9; }
+    .bn-item.active i { color: #1b2a47; }
+    .bn-item.active span { color: #1b2a47; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<!-- ── SCREEN NAVIGATOR ── -->
+<div class="screen-nav">
+  <button onclick="go('home')" id="btn-home" class="active">1. Home</button>
+  <button onclick="go('landing')" id="btn-landing">2. Landing (eligible)</button>
+  <button onclick="go('pilih-kategori')" id="btn-pilih-kategori">3. Pilih Kategori</button>
+  <button onclick="go('form')" id="btn-form">4. Form</button>
+  <button onclick="go('sukses')" id="btn-sukses">5. Sukses</button>
+  <button onclick="go('riwayat')" id="btn-riwayat">6. Riwayat</button>
+  <button onclick="go('no-access')" id="btn-no-access">7. Tidak Eligible</button>
+</div>
+
+<div class="phone">
+  <div class="status-bar">
+    <span>09:41</span>
+    <div class="right">
+      <i class="fa fa-signal"></i>
+      <i class="fa fa-wifi"></i>
+      <i class="fa fa-battery-full"></i>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 1: HOME ══════════ -->
+  <div class="screen active" id="screen-home">
+    <div class="app-header">
+      <div class="greeting">Selamat pagi,</div>
+      <div class="name">Budi Santoso 👋</div>
+      <div class="stay-info">
+        <i class="fa fa-building"></i>
+        <div class="detail">
+          <b>D'Paragon Kemuning — Kamar 305</b><br>
+          Check-in: 15 Jul · Check-out: 20 Jul 2026
+        </div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <div class="section-label">MENU UTAMA</div>
+      <div class="quick-actions">
+        <div class="qa-item" onclick="go('landing')">
+          <div class="icon-wrap" style="background:#fee2e2">
+            <i class="fa fa-triangle-exclamation" style="color:#ef4444"></i>
+          </div>
+          <div class="label">Pengaduan</div>
+        </div>
+        <div class="qa-item">
+          <div class="icon-wrap" style="background:#dbeafe">
+            <i class="fa fa-cart-shopping" style="color:#3a7bd5"></i>
+          </div>
+          <div class="label">Pesan Makan</div>
+        </div>
+        <div class="qa-item">
+          <div class="icon-wrap" style="background:#dcfce7">
+            <i class="fa fa-broom" style="color:#16a34a"></i>
+          </div>
+          <div class="label">Kebersihan</div>
+        </div>
+        <div class="qa-item">
+          <div class="icon-wrap" style="background:#ede9fe">
+            <i class="fa fa-headset" style="color:#7c3aed"></i>
+          </div>
+          <div class="label">Hubungi FO</div>
+        </div>
+        <div class="qa-item">
+          <div class="icon-wrap" style="background:#fef3c7">
+            <i class="fa fa-key" style="color:#d97706"></i>
+          </div>
+          <div class="label">Perpanjang</div>
+        </div>
+        <div class="qa-item">
+          <div class="icon-wrap" style="background:#f0fdf4">
+            <i class="fa fa-star" style="color:#22c55e"></i>
+          </div>
+          <div class="label">Ulasan</div>
+        </div>
+        <div class="qa-item">
+          <div class="icon-wrap" style="background:#fff7ed">
+            <i class="fa fa-receipt" style="color:#f97316"></i>
+          </div>
+          <div class="label">Tagihan</div>
+        </div>
+        <div class="qa-item">
+          <div class="icon-wrap" style="background:#f8f9fa">
+            <i class="fa fa-ellipsis" style="color:#8592a6"></i>
+          </div>
+          <div class="label">Lainnya</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="banner-card" style="cursor:pointer" onclick="go('riwayat')">
+        <i class="fa fa-clock-rotate-left"></i>
+        <div class="text">
+          <div class="t1">Pengaduan terakhirmu</div>
+          <div class="t2">Kebersihan — Kamar 305</div>
+          <div class="t3">Status: <b style="color:#fbbf24">Proses Penanganan</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="bn-item active"><i class="fa fa-house"></i><span>Beranda</span></div>
+      <div class="bn-item"><i class="fa fa-list"></i><span>Pesanan</span></div>
+      <div class="bn-item" onclick="go('riwayat')"><i class="fa fa-triangle-exclamation"></i><span>Pengaduan</span></div>
+      <div class="bn-item"><i class="fa fa-user"></i><span>Profil</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 2: LANDING (ELIGIBLE) ══════════ -->
+  <div class="screen" id="screen-landing">
+    <div class="sub-header">
+      <i class="fa fa-chevron-left back" onclick="go('home')"></i>
+      <div>
+        <div class="title">Pengaduan Tamu</div>
+        <div class="subtitle">Sampaikan keluhan atau masukan kamu</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <div class="info-card" style="margin-top:12px">
+        <div class="card-title"><i class="fa fa-building"></i> Stay aktif</div>
+        <div class="info-row"><span class="lbl">Properti</span><span class="val">D'Paragon Kemuning</span></div>
+        <div class="info-row"><span class="lbl">Kamar</span><span class="val">305</span></div>
+        <div class="info-row"><span class="lbl">Check-in</span><span class="val">15 Jul 2026</span></div>
+        <div class="info-row"><span class="lbl">Check-out</span><span class="val">20 Jul 2026</span></div>
+      </div>
+      <div class="notice info">
+        <i class="fa fa-circle-info"></i>
+        <span>Kamu dapat mengajukan pengaduan selama menginap atau maksimal <b>2×24 jam setelah check-out</b>. Satu pengaduan per kategori per stay.</span>
+      </div>
+      <div style="padding: 4px 16px 8px">
+        <div style="font-size:11px;font-weight:700;color:#8592a6;margin-bottom:8px;margin-top:4px">RIWAYAT PENGADUAN STAY INI</div>
+        <div class="riwayat-item" style="margin:0 0 8px">
+          <div class="ri-top">
+            <div>
+              <div class="ri-jenis">Kebersihan</div>
+              <div class="ri-id">#ADU-2026071501</div>
+            </div>
+            <span class="status-badge s-proses">Proses</span>
+          </div>
+          <div class="ri-ket">Kamar belum dibersihkan sejak kemarin siang. Lantai kamar mandi terasa licin dan handuk belum diganti.</div>
+          <div class="ri-meta">
+            <span class="ri-date">15 Jul 2026, 09:30</span>
+          </div>
+        </div>
+      </div>
+      <div class="notice warn" style="margin-top:0">
+        <i class="fa fa-lightbulb"></i>
+        <span>Kategori <b>Kebersihan</b> sudah pernah kamu laporkan untuk stay ini.</span>
+      </div>
+    </div>
+    <div class="bottom-cta">
+      <button class="btn-primary" onclick="go('pilih-kategori')">
+        <i class="fa fa-plus"></i> Ajukan Pengaduan Baru
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 3: PILIH KATEGORI ══════════ -->
+  <div class="screen" id="screen-pilih-kategori">
+    <div class="sub-header">
+      <i class="fa fa-chevron-left back" onclick="go('landing')"></i>
+      <div>
+        <div class="title">Pilih Kategori</div>
+        <div class="subtitle">Apa yang ingin kamu laporkan?</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <div class="notice info" style="margin-top:12px">
+        <i class="fa fa-circle-info"></i>
+        <span>Kategori <span style="text-decoration:line-through;opacity:.6">Kebersihan</span> sudah dilaporkan untuk stay ini.</span>
+      </div>
+      <div class="kategori-grid">
+        <div class="kat-item disabled">
+          <div class="kat-icon" style="background:#f0fdf4"><i class="fa fa-broom" style="color:#22c55e"></i></div>
+          <div class="kat-name">Kebersihan</div>
+          <div class="kat-status">Sudah dilaporkan</div>
+        </div>
+        <div class="kat-item" onclick="pilihKat(this, 'Kerusakan Fasilitas')">
+          <div class="kat-icon" style="background:#fff7ed"><i class="fa fa-wrench" style="color:#f97316"></i></div>
+          <div class="kat-name">Kerusakan Fasilitas</div>
+        </div>
+        <div class="kat-item" onclick="pilihKat(this, 'Kerusakan Gedung')">
+          <div class="kat-icon" style="background:#fef3c7"><i class="fa fa-building-circle-exclamation" style="color:#d97706"></i></div>
+          <div class="kat-name">Kerusakan Gedung</div>
+        </div>
+        <div class="kat-item" onclick="pilihKat(this, 'Pelayanan')">
+          <div class="kat-icon" style="background:#dbeafe"><i class="fa fa-person-circle-question" style="color:#3a7bd5"></i></div>
+          <div class="kat-name">Pelayanan</div>
+        </div>
+        <div class="kat-item" onclick="pilihKat(this, 'Keamanan & Kenyamanan')">
+          <div class="kat-icon" style="background:#ede9fe"><i class="fa fa-shield-halved" style="color:#7c3aed"></i></div>
+          <div class="kat-name">Keamanan & Kenyamanan</div>
+        </div>
+        <div class="kat-item" onclick="pilihKat(this, 'Token Listrik')">
+          <div class="kat-icon" style="background:#fef9c3"><i class="fa fa-bolt" style="color:#ca8a04"></i></div>
+          <div class="kat-name">Token Listrik</div>
+        </div>
+        <div class="kat-item" onclick="pilihKat(this, 'Harga')">
+          <div class="kat-icon" style="background:#f0fdf4"><i class="fa fa-tag" style="color:#16a34a"></i></div>
+          <div class="kat-name">Harga</div>
+        </div>
+        <div class="kat-item" onclick="pilihKat(this, 'Administrasi')">
+          <div class="kat-icon" style="background:#f8f9fa"><i class="fa fa-file-lines" style="color:#6b7280"></i></div>
+          <div class="kat-name">Administrasi</div>
+        </div>
+        <div class="kat-item" onclick="pilihKat(this, 'Breakfast')">
+          <div class="kat-icon" style="background:#fdf2f8"><i class="fa fa-mug-hot" style="color:#db2777"></i></div>
+          <div class="kat-name">Breakfast</div>
+        </div>
+        <div class="kat-item" onclick="pilihKat(this, 'Lainnya')">
+          <div class="kat-icon" style="background:#f0f2f5"><i class="fa fa-ellipsis" style="color:#8592a6"></i></div>
+          <div class="kat-name">Lainnya</div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-cta">
+      <button class="btn-primary" id="btn-lanjut-form" disabled onclick="go('form')">
+        Lanjut
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 4: FORM ══════════ -->
+  <div class="screen" id="screen-form">
+    <div class="sub-header">
+      <i class="fa fa-chevron-left back" onclick="go('pilih-kategori')"></i>
+      <div>
+        <div class="title">Detail Pengaduan</div>
+        <div class="subtitle">Ceritakan masalahmu dengan jelas</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <div style="padding:14px 16px 4px">
+        <div style="font-size:11px;font-weight:700;color:#8592a6;margin-bottom:6px">KATEGORI DIPILIH</div>
+        <span class="kat-chip" id="chip-kategori">
+          <i class="fa fa-wrench"></i> Kerusakan Fasilitas
+        </span>
+      </div>
+      <div class="divider" style="height:1px;background:#f0f2f5;margin:12px 0"></div>
+      <div class="form-group">
+        <label class="form-label">Kronologi / Keterangan <span>*</span></label>
+        <textarea class="form-textarea" rows="6"
+          placeholder="Ceritakan detail masalah yang kamu alami. Misal: AC di kamar tidak dingin sejak malam pertama check-in, sudah lapor ke resepsionis tapi belum ada tindakan."
+          oninput="updateChar(this)"></textarea>
+        <div class="char-count"><span id="char-count">0</span>/500 karakter</div>
+      </div>
+      <div class="notice info" style="margin-top:0">
+        <i class="fa fa-circle-info"></i>
+        <span>Pengaduanmu akan langsung diteruskan ke tim yang bertanggung jawab. Kamu bisa memantau statusnya di menu Pengaduan.</span>
+      </div>
+      <div class="info-card">
+        <div class="card-title"><i class="fa fa-building"></i> Ditujukan untuk</div>
+        <div class="info-row"><span class="lbl">Properti</span><span class="val">D'Paragon Kemuning</span></div>
+        <div class="info-row"><span class="lbl">Kamar</span><span class="val">305</span></div>
+        <div class="info-row"><span class="lbl">Tamu</span><span class="val">Budi Santoso</span></div>
+      </div>
+    </div>
+    <div class="bottom-cta">
+      <button class="btn-primary" onclick="go('sukses')">
+        <i class="fa fa-paper-plane"></i> Kirim Pengaduan
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 5: SUKSES ══════════ -->
+  <div class="screen" id="screen-sukses">
+    <div class="sub-header">
+      <div style="width:18px"></div>
+      <div>
+        <div class="title">Pengaduan Terkirim</div>
+      </div>
+    </div>
+    <div class="screen-body" style="display:flex;flex-direction:column;align-items:center">
+      <div class="success-icon"><i class="fa fa-check"></i></div>
+      <div class="success-title">Pengaduan Berhasil Dikirim</div>
+      <div class="success-sub">Pengaduanmu sudah kami terima dan akan segera ditangani oleh tim terkait.</div>
+      <div class="id-badge">
+        Nomor Pengaduan
+        <div class="id-val">#ADU-2026071502</div>
+      </div>
+      <div class="notice info" style="width:calc(100% - 32px);margin-top:4px">
+        <i class="fa fa-circle-info"></i>
+        <span>Pantau status pengaduanmu di menu <b>Pengaduan</b>. Tim kami akan menghubungi kamu jika diperlukan.</span>
+      </div>
+    </div>
+    <div class="bottom-cta">
+      <button class="btn-primary" onclick="go('riwayat')">Lihat Status Pengaduan</button>
+      <button class="btn-secondary" onclick="go('home')">Kembali ke Beranda</button>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 6: RIWAYAT ══════════ -->
+  <div class="screen" id="screen-riwayat">
+    <div class="sub-header">
+      <i class="fa fa-chevron-left back" onclick="go('home')"></i>
+      <div>
+        <div class="title">Riwayat Pengaduan</div>
+        <div class="subtitle">D'Paragon Kemuning · Kamar 305</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <div style="padding:12px 16px 4px;font-size:11px;font-weight:700;color:#8592a6">STAY INI (15–20 Jul 2026)</div>
+
+      <div class="riwayat-item">
+        <div class="ri-top">
+          <div>
+            <div class="ri-jenis"><i class="fa fa-wrench" style="color:#f97316;font-size:11px"></i> Kerusakan Fasilitas</div>
+            <div class="ri-id">#ADU-2026071502</div>
+          </div>
+          <span class="status-badge s-baru">Baru</span>
+        </div>
+        <div class="ri-ket">AC kamar tidak dingin sejak malam pertama. Sudah lapor ke resepsionis tapi belum ada tindakan.</div>
+        <div class="ri-meta">
+          <span class="ri-date"><i class="fa fa-clock" style="color:#b0bac9"></i> 15 Jul 2026, 10:15</span>
+        </div>
+      </div>
+
+      <div class="riwayat-item">
+        <div class="ri-top">
+          <div>
+            <div class="ri-jenis"><i class="fa fa-broom" style="color:#22c55e;font-size:11px"></i> Kebersihan</div>
+            <div class="ri-id">#ADU-2026071501</div>
+          </div>
+          <span class="status-badge s-proses">Proses</span>
+        </div>
+        <div class="ri-ket">Kamar belum dibersihkan sejak kemarin siang. Lantai kamar mandi terasa licin dan handuk belum diganti.</div>
+        <div class="ri-meta">
+          <span class="ri-date"><i class="fa fa-clock" style="color:#b0bac9"></i> 15 Jul 2026, 09:30</span>
+        </div>
+      </div>
+
+      <div style="padding:12px 16px 4px;font-size:11px;font-weight:700;color:#8592a6;margin-top:8px">STAY SEBELUMNYA</div>
+
+      <div class="riwayat-item">
+        <div class="ri-top">
+          <div>
+            <div class="ri-jenis"><i class="fa fa-shield-halved" style="color:#7c3aed;font-size:11px"></i> Keamanan & Kenyamanan</div>
+            <div class="ri-id">#ADU-2026063001 · D'Paragon Seturan 1</div>
+          </div>
+          <span class="status-badge s-selesai">Selesai</span>
+        </div>
+        <div class="ri-ket">Suara berisik dari kamar sebelah hingga larut malam.</div>
+        <div class="ri-meta">
+          <span class="ri-date"><i class="fa fa-clock" style="color:#b0bac9"></i> 30 Jun 2026, 23:10</span>
+        </div>
+      </div>
+
+      <div class="riwayat-item">
+        <div class="ri-top">
+          <div>
+            <div class="ri-jenis"><i class="fa fa-bolt" style="color:#ca8a04;font-size:11px"></i> Token Listrik</div>
+            <div class="ri-id">#ADU-2026060501 · D'Paragon UPN</div>
+          </div>
+          <span class="status-badge s-ditolak">Ditolak</span>
+        </div>
+        <div class="ri-ket">Token listrik habis di malam hari.</div>
+        <div class="ri-meta">
+          <span class="ri-date"><i class="fa fa-clock" style="color:#b0bac9"></i> 5 Jun 2026, 20:45</span>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-cta">
+      <button class="btn-primary" onclick="go('pilih-kategori')">
+        <i class="fa fa-plus"></i> Ajukan Pengaduan Baru
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 7: TIDAK ELIGIBLE ══════════ -->
+  <div class="screen" id="screen-no-access">
+    <div class="sub-header">
+      <i class="fa fa-chevron-left back" onclick="go('home')"></i>
+      <div>
+        <div class="title">Pengaduan Tamu</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <div class="no-access">
+        <div class="no-access-icon"><i class="fa fa-calendar-xmark"></i></div>
+        <h3>Tidak Ada Stay Aktif</h3>
+        <p>Fitur pengaduan hanya tersedia saat kamu sedang menginap atau dalam <b>2×24 jam setelah check-out</b>.</p>
+        <p style="margin-top:12px;font-size:11px;color:#9ca3b0">Stay terakhirmu di D'Paragon Malioboro sudah berakhir lebih dari 48 jam yang lalu.</p>
+      </div>
+      <div class="notice warn" style="margin-top:0">
+        <i class="fa fa-lightbulb"></i>
+        <span>Ada keluhan? Kamu tetap bisa menghubungi kami langsung via <b>WhatsApp</b> atau <b>Google Review</b>.</span>
+      </div>
+    </div>
+    <div class="bottom-cta">
+      <button class="btn-primary" style="background:#25D366" onclick="alert('Buka WhatsApp')">
+        <i class="fa-brands fa-whatsapp"></i> Hubungi via WhatsApp
+      </button>
+      <button class="btn-secondary" onclick="go('home')">Kembali ke Beranda</button>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+  let selectedKat = null;
+
+  function go(screen) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.screen-nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('screen-' + screen).classList.add('active');
+    document.getElementById('btn-' + screen).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function pilihKat(el, nama) {
+    document.querySelectorAll('.kat-item:not(.disabled)').forEach(k => k.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedKat = nama;
+    document.getElementById('btn-lanjut-form').disabled = false;
+    document.getElementById('chip-kategori').innerHTML = '<i class="fa fa-check"></i> ' + nama;
+  }
+
+  function updateChar(el) {
+    document.getElementById('char-count').textContent = el.value.length;
+  }
+</script>
+</body>
+</html>

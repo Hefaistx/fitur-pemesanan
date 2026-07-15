@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pemesanan — D'Paragon Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; font-size: 13px; background: #f0f2f5; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 50px;
+      background: #1b2a47; display: flex; align-items: center;
+      padding: 0 16px; z-index: 1000; gap: 12px;
+    }
+    .topbar .logo {
+      display: flex; align-items: center; gap: 8px;
+      color: #fff; font-weight: 700; font-size: 15px; letter-spacing: 1px;
+      min-width: 200px;
+    }
+    .topbar .logo-box {
+      width: 28px; height: 28px; background: #3a7bd5;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 4px; font-size: 14px; color: #fff;
+    }
+    .topbar .nav-icons { display: flex; gap: 4px; flex: 1; }
+    .topbar .nav-icons a {
+      color: #aab4c8; padding: 6px 10px; border-radius: 4px;
+      font-size: 16px; text-decoration: none; transition: background .15s;
+    }
+    .topbar .nav-icons a:hover, .topbar .nav-icons a.active { background: #2d3f63; color: #fff; }
+    .topbar .user-area {
+      display: flex; align-items: center; gap: 8px; color: #fff;
+      font-size: 13px; cursor: pointer;
+    }
+    .topbar .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: fixed; top: 50px; left: 0; bottom: 0;
+      width: 210px; background: #fff;
+      border-right: 1px solid #e3e7ef;
+      overflow-y: auto; z-index: 900;
+    }
+    .sidebar .module-title {
+      padding: 14px 16px 8px;
+      font-size: 11px; font-weight: 700; color: #8592a6;
+      text-transform: uppercase; letter-spacing: .8px;
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .sidebar .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 16px; color: #3d4f68; cursor: pointer;
+      font-size: 13px; transition: background .12s;
+      text-decoration: none;
+    }
+    .sidebar .nav-item:hover { background: #f5f7fa; }
+    .sidebar .nav-item.active { color: #1b2a47; font-weight: 600; background: #eef1f7; }
+    .sidebar .nav-item i { width: 16px; text-align: center; font-size: 13px; color: #8592a6; }
+    .sidebar .nav-item.active i { color: #3a7bd5; }
+    .sidebar .section-label {
+      padding: 10px 16px 4px;
+      font-size: 10px; font-weight: 700; color: #b0bac9;
+      text-transform: uppercase; letter-spacing: .7px;
+    }
+    .sidebar .sub-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 16px 7px 36px; color: #5a6a82; cursor: pointer;
+      font-size: 12.5px; transition: background .12s; text-decoration: none;
+    }
+    .sidebar .sub-item:hover { background: #f5f7fa; color: #1b2a47; }
+    .sidebar .sub-item.active { color: #1b2a47; font-weight: 600; }
+    .sidebar .bullet {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      border: 2px solid #b0bac9;
+    }
+    .sidebar .sub-item.active .bullet { background: #3a7bd5; border-color: #3a7bd5; }
+
+    /* ── MAIN ── */
+    .main { margin-left: 210px; margin-top: 50px; padding: 24px; min-height: calc(100vh - 50px); }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    .page-header h5 { margin: 0; font-size: 15px; font-weight: 700; color: #1b2a47; }
+    .page-header .breadcrumb-text { font-size: 11px; color: #8592a6; margin-top: 2px; }
+    .page-header .btn-group-top { display: flex; gap: 8px; }
+
+    /* ── CARD ── */
+    .card { border: 1px solid #e3e7ef; border-radius: 8px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .card-body { padding: 20px; }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      background: #f8f9fb; border: 1px solid #e3e7ef;
+      border-radius: 6px; padding: 12px 16px;
+      margin-bottom: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .filter-bar label { font-size: 11px; color: #8592a6; font-weight: 600; margin-bottom: 0; }
+    .filter-bar .form-select, .filter-bar .form-control {
+      font-size: 12px; height: 32px; padding: 4px 10px; border-color: #dde2ec;
+    }
+
+    /* ── TABLE CONTROLS ── */
+    .table-controls {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+    }
+    .table-controls .show-entries { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5a6a82; }
+    .table-controls .show-entries select { font-size: 12px; height: 28px; padding: 2px 6px; border-color: #dde2ec; border-radius: 4px; }
+    .search-box { display: flex; align-items: center; gap: 6px; }
+    .search-box label { font-size: 12px; color: #5a6a82; }
+    .search-box input { font-size: 12px; height: 28px; padding: 2px 8px; border: 1px solid #dde2ec; border-radius: 4px; width: 160px; }
+
+    /* ── DATA TABLE ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .data-table thead tr { background: #1b2a47; }
+    .data-table thead th {
+      padding: 10px 12px; color: #fff; font-weight: 600;
+      font-size: 12px; white-space: nowrap; border: none;
+    }
+    .data-table thead th .sort-icon { color: #6a85b0; margin-left: 4px; font-size: 10px; }
+    .data-table tbody tr { border-bottom: 1px solid #f0f2f5; }
+    .data-table tbody tr:hover { background: #f8f9fb; }
+    .data-table tbody td { padding: 9px 12px; color: #3d4f68; vertical-align: middle; }
+    .data-table tbody td.num { color: #8592a6; font-size: 12px; }
+
+    /* ── BADGES ── */
+    .badge-fnb { background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-jastip { background: #ede9fe; color: #6d28d9; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-aktif { background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-nonaktif { background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+    /* ── ACTION BUTTONS ── */
+    .btn-edit { background: #f59e0b; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .btn-edit:hover { background: #d97706; }
+    .btn-del { background: #ef4444; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .btn-del:hover { background: #dc2626; }
+
+    /* ── PAGINATION ── */
+    .table-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 14px; font-size: 12px; color: #5a6a82;
+    }
+    .pagination-btns { display: flex; gap: 4px; }
+    .pagination-btns button {
+      padding: 4px 10px; border: 1px solid #dde2ec; background: #fff;
+      border-radius: 4px; font-size: 12px; cursor: pointer; color: #3d4f68;
+    }
+    .pagination-btns button.active { background: #1b2a47; color: #fff; border-color: #1b2a47; }
+    .pagination-btns button:hover:not(.active) { background: #f5f7fa; }
+
+    /* ── BUTTONS ── */
+    .btn-tambah { background: #3a7bd5; color: #fff; border: none; padding: 6px 14px; border-radius: 5px; font-size: 12px; cursor: pointer; font-weight: 600; }
+    .btn-tambah:hover { background: #2563b0; }
+    .btn-export { background: #fff; color: #3d4f68; border: 1px solid #dde2ec; padding: 6px 14px; border-radius: 5px; font-size: 12px; cursor: pointer; font-weight: 600; }
+    .btn-export:hover { background: #f5f7fa; }
+
+    /* ── PAGE SECTIONS ── */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* ── MODAL (dummy) ── */
+    .modal-header { background: #1b2a47; color: #fff; border-radius: 8px 8px 0 0; }
+    .modal-title { font-size: 14px; font-weight: 700; }
+    .modal-header .btn-close { filter: invert(1); }
+
+    /* slot table inside delivery group detail */
+    .slot-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #f0f4ff; border: 1px solid #c7d7f5;
+      border-radius: 6px; padding: 3px 10px; font-size: 11.5px; color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ TOP BAR ═══════════════════ -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-box"><i class="fa fa-th"></i></div>
+    D' PARAGON
+  </div>
+  <div class="nav-icons">
+    <a href="#" title="Dashboard"><i class="fa fa-chart-bar"></i></a>
+    <a href="#" title="Front Office"><i class="fa fa-building"></i></a>
+    <a href="#" title="HK"><i class="fa fa-broom"></i></a>
+    <a href="#" title="Keuangan"><i class="fa fa-wallet"></i></a>
+    <a href="#" title="Diskon"><i class="fa fa-percent"></i></a>
+    <a href="#" title="HR"><i class="fa fa-users"></i></a>
+    <a href="#" class="active" title="Pemesanan"><i class="fa fa-cart-shopping"></i></a>
+    <a href="#" title="Maintenance"><i class="fa fa-wrench"></i></a>
+    <a href="#" title="Checklist"><i class="fa fa-check-double"></i></a>
+    <a href="#" title="Tamu"><i class="fa fa-person"></i></a>
+    <a href="#" title="Manajemen User"><i class="fa fa-user-gear"></i></a>
+    <a href="#" title="Tambah User"><i class="fa fa-user-plus"></i></a>
+  </div>
+  <div class="user-area">
+    <div class="avatar">A</div>
+    <span>Administrator</span>
+    <i class="fa fa-chevron-down" style="font-size:10px;color:#aab4c8"></i>
+  </div>
+</div>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<div class="sidebar">
+  <div class="module-title">Fitur Pemesanan</div>
+  <a class="nav-item" onclick="showPage('dashboard')">
+    <i class="fa fa-house"></i> Menu Utama
+  </a>
+  <a class="nav-item" onclick="showPage('pesanan')">
+    <i class="fa fa-list-check"></i> Pesanan Masuk
+  </a>
+  <a class="nav-item" onclick="showPage('laporan')">
+    <i class="fa fa-chart-line"></i> Laporan
+  </a>
+
+  <div class="section-label">Master Data</div>
+
+  <a class="sub-item active" id="nav-toko" onclick="showPage('toko')">
+    <span class="bullet"></span> Toko / Merchant
+  </a>
+  <a class="sub-item" id="nav-kategori" onclick="showPage('kategori')">
+    <span class="bullet"></span> Kategori Menu
+  </a>
+  <a class="sub-item" id="nav-item" onclick="showPage('item')">
+    <span class="bullet"></span> Item Menu
+  </a>
+  <a class="sub-item" id="nav-delivery-group" onclick="showPage('delivery-group')">
+    <span class="bullet"></span> Delivery Group
+  </a>
+  <a class="sub-item" id="nav-delivery-slot" onclick="showPage('delivery-slot')">
+    <span class="bullet"></span> Delivery Slot
+  </a>
+  <a class="sub-item" id="nav-properti" onclick="showPage('properti')">
+    <span class="bullet"></span> Properti
+  </a>
+</div>
+
+<!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+<div class="main">
+
+  <!-- ── TOKO ── -->
+  <div id="page-toko" class="page-section active">
+    <div class="page-header">
+      <div>
+        <h5>Master Toko / Merchant</h5>
+        <div class="breadcrumb-text">Pemesanan › Master › Toko</div>
+      </div>
+      <div class="btn-group-top">
+        <button class="btn-export"><i class="fa fa-download"></i> Export</button>
+        <button class="btn-tambah" onclick="alert('Form tambah toko')"><i class="fa fa-plus"></i> Tambah</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="filter-bar">
+          <label>Tipe</label>
+          <select class="form-select" style="width:130px">
+            <option>Semua</option>
+            <option>FnB</option>
+            <option>Jastip</option>
+          </select>
+          <label>Status</label>
+          <select class="form-select" style="width:120px">
+            <option>Semua</option>
+            <option>Aktif</option>
+            <option>Non-Aktif</option>
+          </select>
+          <label>Sesi</label>
+          <select class="form-select" style="width:160px">
+            <option>Semua</option>
+            <option>Standar 3 Sesi</option>
+            <option>Jastip 2 Sesi</option>
+          </select>
+        </div>
+        <div class="table-controls">
+          <div class="show-entries">
+            Show <select><option>10</option><option>25</option><option>50</option></select> entries
+          </div>
+          <div class="search-box">
+            <label>Search:</label>
+            <input type="text" placeholder="Cari nama toko...">
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama Toko <span class="sort-icon">↕</span></th>
+              <th>Tipe <span class="sort-icon">↕</span></th>
+              <th>Sesi Pengiriman <span class="sort-icon">↕</span></th>
+              <th>Jam Buka <span class="sort-icon">↕</span></th>
+              <th>Status <span class="sort-icon">↕</span></th>
+              <th>Terakhir Diubah <span class="sort-icon">↕</span></th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">1</td>
+              <td><b>Campagna Coffee &amp; Eatery</b><br><small style="color:#8592a6">campagna</small></td>
+              <td><span class="badge-fnb">FnB</span></td>
+              <td>Standar 3 Sesi</td>
+              <td>07.00 – 22.00</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026, 10:00:00</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+            <tr>
+              <td class="num">2</td>
+              <td><b>Sate Klathak Pak Jede</b><br><small style="color:#8592a6">jede</small></td>
+              <td><span class="badge-fnb">FnB</span></td>
+              <td>Standar 3 Sesi</td>
+              <td>10.00 – 21.00</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026, 10:00:00</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+            <tr>
+              <td class="num">3</td>
+              <td><b>Bakpia Jogja Asri</b><br><small style="color:#8592a6">bakpia-asri</small></td>
+              <td><span class="badge-jastip">Jastip</span></td>
+              <td>Jastip 2 Sesi</td>
+              <td>08.00 – 21.00</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026, 10:00:00</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+            <tr>
+              <td class="num">4</td>
+              <td><b>Gudeg Kemasan Bu Sari</b><br><small style="color:#8592a6">gudeg-busari</small></td>
+              <td><span class="badge-jastip">Jastip</span></td>
+              <td>Jastip 2 Sesi</td>
+              <td>07.00 – 20.00</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026, 10:00:00</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+            <tr>
+              <td class="num">5</td>
+              <td><b>Wedang Rempah Jogja</b><br><small style="color:#8592a6">wedang-rempah</small></td>
+              <td><span class="badge-jastip">Jastip</span></td>
+              <td>Jastip 2 Sesi</td>
+              <td>08.00 – 22.00</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026, 10:00:00</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <div>Showing 1 to 5 of 5 entries</div>
+          <div class="pagination-btns">
+            <button>Previous</button>
+            <button class="active">1</button>
+            <button>Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── KATEGORI MENU ── -->
+  <div id="page-kategori" class="page-section">
+    <div class="page-header">
+      <div>
+        <h5>Master Kategori Menu</h5>
+        <div class="breadcrumb-text">Pemesanan › Master › Kategori Menu</div>
+      </div>
+      <div class="btn-group-top">
+        <button class="btn-export"><i class="fa fa-download"></i> Export</button>
+        <button class="btn-tambah"><i class="fa fa-plus"></i> Tambah</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="filter-bar">
+          <label>Toko</label>
+          <select class="form-select" style="width:220px">
+            <option>Semua Toko</option>
+            <option>Campagna Coffee &amp; Eatery</option>
+            <option>Sate Klathak Pak Jede</option>
+            <option>Bakpia Jogja Asri</option>
+            <option>Gudeg Kemasan Bu Sari</option>
+            <option>Wedang Rempah Jogja</option>
+          </select>
+        </div>
+        <div class="table-controls">
+          <div class="show-entries">Show <select><option>10</option><option>25</option></select> entries</div>
+          <div class="search-box"><label>Search:</label><input type="text"></div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama Kategori <span class="sort-icon">↕</span></th>
+              <th>Toko <span class="sort-icon">↕</span></th>
+              <th>Jumlah Item <span class="sort-icon">↕</span></th>
+              <th>Urutan <span class="sort-icon">↕</span></th>
+              <th>Terakhir Diubah <span class="sort-icon">↕</span></th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="num">1</td><td>Kopi &amp; Minuman</td><td>Campagna Coffee &amp; Eatery</td><td>6</td><td>1</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">2</td><td>Makanan Berat</td><td>Campagna Coffee &amp; Eatery</td><td>3</td><td>2</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">3</td><td>Pastri &amp; Snack</td><td>Campagna Coffee &amp; Eatery</td><td>3</td><td>3</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">4</td><td>Sate</td><td>Sate Klathak Pak Jede</td><td>16</td><td>1</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">5</td><td>Bakmi</td><td>Sate Klathak Pak Jede</td><td>14</td><td>2</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">6</td><td>Lain-Lain</td><td>Sate Klathak Pak Jede</td><td>1</td><td>3</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">7</td><td>Minuman</td><td>Sate Klathak Pak Jede</td><td>27</td><td>4</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">8</td><td>Bakpia</td><td>Bakpia Jogja Asri</td><td>5</td><td>1</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">9</td><td>Paket Oleh-oleh</td><td>Bakpia Jogja Asri</td><td>2</td><td>2</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">10</td><td>Gudeg</td><td>Gudeg Kemasan Bu Sari</td><td>3</td><td>1</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <div>Showing 1 to 10 of 13 entries</div>
+          <div class="pagination-btns">
+            <button>Previous</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ITEM MENU ── -->
+  <div id="page-item" class="page-section">
+    <div class="page-header">
+      <div>
+        <h5>Master Item Menu</h5>
+        <div class="breadcrumb-text">Pemesanan › Master › Item Menu</div>
+      </div>
+      <div class="btn-group-top">
+        <button class="btn-export"><i class="fa fa-download"></i> Export</button>
+        <button class="btn-tambah"><i class="fa fa-plus"></i> Tambah</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="filter-bar">
+          <label>Toko</label>
+          <select class="form-select" style="width:200px" id="filterTokoItem" onchange="filterKategori()">
+            <option value="">Semua Toko</option>
+            <option value="campagna">Campagna Coffee &amp; Eatery</option>
+            <option value="jede">Sate Klathak Pak Jede</option>
+            <option value="bakpia">Bakpia Jogja Asri</option>
+          </select>
+          <label>Kategori</label>
+          <select class="form-select" style="width:160px">
+            <option>Semua</option>
+            <option>Kopi &amp; Minuman</option>
+            <option>Makanan Berat</option>
+            <option>Pastri &amp; Snack</option>
+          </select>
+          <label>Status</label>
+          <select class="form-select" style="width:120px">
+            <option>Semua</option>
+            <option>Tersedia</option>
+            <option>Tidak Tersedia</option>
+          </select>
+        </div>
+        <div class="table-controls">
+          <div class="show-entries">Show <select><option>10</option><option>25</option></select> entries</div>
+          <div class="search-box"><label>Search:</label><input type="text" placeholder="Cari nama item..."></div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama Item <span class="sort-icon">↕</span></th>
+              <th>Toko <span class="sort-icon">↕</span></th>
+              <th>Kategori <span class="sort-icon">↕</span></th>
+              <th style="text-align:right">Harga <span class="sort-icon">↕</span></th>
+              <th>Tersedia <span class="sort-icon">↕</span></th>
+              <th>Urutan <span class="sort-icon">↕</span></th>
+              <th>Terakhir Diubah <span class="sort-icon">↕</span></th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="num">1</td><td>Espresso</td><td>Campagna</td><td>Kopi &amp; Minuman</td><td style="text-align:right">Rp 25.000</td><td><span class="badge-aktif">Ya</span></td><td>1</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">2</td><td>Americano</td><td>Campagna</td><td>Kopi &amp; Minuman</td><td style="text-align:right">Rp 28.000</td><td><span class="badge-aktif">Ya</span></td><td>2</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">3</td><td>Cappuccino</td><td>Campagna</td><td>Kopi &amp; Minuman</td><td style="text-align:right">Rp 32.000</td><td><span class="badge-aktif">Ya</span></td><td>3</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">4</td><td>Latte</td><td>Campagna</td><td>Kopi &amp; Minuman</td><td style="text-align:right">Rp 35.000</td><td><span class="badge-aktif">Ya</span></td><td>4</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">5</td><td>Cold Brew</td><td>Campagna</td><td>Kopi &amp; Minuman</td><td style="text-align:right">Rp 38.000</td><td><span class="badge-aktif">Ya</span></td><td>5</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">6</td><td>Nasi Goreng Campagna</td><td>Campagna</td><td>Makanan Berat</td><td style="text-align:right">Rp 45.000</td><td><span class="badge-aktif">Ya</span></td><td>1</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">7</td><td>Avocado Toast</td><td>Campagna</td><td>Makanan Berat</td><td style="text-align:right">Rp 52.000</td><td><span class="badge-aktif">Ya</span></td><td>2</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">8</td><td>Sate Klathak</td><td>Pak Jede</td><td>Sate</td><td style="text-align:right">Rp 50.000</td><td><span class="badge-aktif">Ya</span></td><td>15</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">9</td><td>Tongseng Original</td><td>Pak Jede</td><td>Sate</td><td style="text-align:right">Rp 50.000</td><td><span class="badge-aktif">Ya</span></td><td>2</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">10</td><td>Bakpia Kacang Hijau</td><td>Bakpia Asri</td><td>Bakpia</td><td style="text-align:right">Rp 25.000</td><td><span class="badge-aktif">Ya</span></td><td>1</td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <div>Showing 1 to 10 of 68 entries</div>
+          <div class="pagination-btns">
+            <button>Previous</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>...</button>
+            <button>7</button>
+            <button>Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DELIVERY GROUP ── -->
+  <div id="page-delivery-group" class="page-section">
+    <div class="page-header">
+      <div>
+        <h5>Master Delivery Group</h5>
+        <div class="breadcrumb-text">Pemesanan › Master › Delivery Group</div>
+      </div>
+      <div class="btn-group-top">
+        <button class="btn-export"><i class="fa fa-download"></i> Export</button>
+        <button class="btn-tambah"><i class="fa fa-plus"></i> Tambah</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="table-controls">
+          <div class="show-entries">Show <select><option>10</option></select> entries</div>
+          <div class="search-box"><label>Search:</label><input type="text"></div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama Grup <span class="sort-icon">↕</span></th>
+              <th>Deskripsi <span class="sort-icon">↕</span></th>
+              <th>Slot Aktif <span class="sort-icon">↕</span></th>
+              <th>Toko Terhubung <span class="sort-icon">↕</span></th>
+              <th>Terakhir Diubah <span class="sort-icon">↕</span></th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">1</td>
+              <td><b>Standar 3 Sesi</b></td>
+              <td>3× pengiriman per hari (F&amp;B)</td>
+              <td>
+                <span class="slot-tag"><i class="fa fa-clock"></i> 11:00 → 13:00</span>
+                <span class="slot-tag" style="margin-left:4px"><i class="fa fa-clock"></i> 14:00 → 16:00</span>
+                <span class="slot-tag" style="margin-left:4px"><i class="fa fa-clock"></i> 18:00 → 20:00</span>
+              </td>
+              <td>Campagna, Pak Jede</td>
+              <td>14-JUL-2026</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+            <tr>
+              <td class="num">2</td>
+              <td><b>Jastip 2 Sesi</b></td>
+              <td>2× pengiriman per hari (Jastip)</td>
+              <td>
+                <span class="slot-tag"><i class="fa fa-clock"></i> 10:00 → 14:00</span>
+                <span class="slot-tag" style="margin-left:4px"><i class="fa fa-clock"></i> 16:00 → 19:00</span>
+              </td>
+              <td>Bakpia Asri, Bu Sari, Wedang</td>
+              <td>14-JUL-2026</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <div>Showing 1 to 2 of 2 entries</div>
+          <div class="pagination-btns">
+            <button>Previous</button>
+            <button class="active">1</button>
+            <button>Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DELIVERY SLOT ── -->
+  <div id="page-delivery-slot" class="page-section">
+    <div class="page-header">
+      <div>
+        <h5>Master Delivery Slot</h5>
+        <div class="breadcrumb-text">Pemesanan › Master › Delivery Slot</div>
+      </div>
+      <div class="btn-group-top">
+        <button class="btn-export"><i class="fa fa-download"></i> Export</button>
+        <button class="btn-tambah"><i class="fa fa-plus"></i> Tambah</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="filter-bar">
+          <label>Grup</label>
+          <select class="form-select" style="width:180px">
+            <option>Semua Grup</option>
+            <option>Standar 3 Sesi</option>
+            <option>Jastip 2 Sesi</option>
+          </select>
+          <label>Status</label>
+          <select class="form-select" style="width:120px">
+            <option>Semua</option>
+            <option>Aktif</option>
+            <option>Non-Aktif</option>
+          </select>
+        </div>
+        <div class="table-controls">
+          <div class="show-entries">Show <select><option>10</option></select> entries</div>
+          <div class="search-box"><label>Search:</label><input type="text"></div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Grup <span class="sort-icon">↕</span></th>
+              <th>Batas Pesan (Cutoff) <span class="sort-icon">↕</span></th>
+              <th>Estimasi Kirim <span class="sort-icon">↕</span></th>
+              <th>Urutan <span class="sort-icon">↕</span></th>
+              <th>Status <span class="sort-icon">↕</span></th>
+              <th>Terakhir Diubah <span class="sort-icon">↕</span></th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">1</td>
+              <td>Standar 3 Sesi</td>
+              <td><b>11:00</b></td>
+              <td><b>13:00</b></td>
+              <td>1</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+            <tr>
+              <td class="num">2</td>
+              <td>Standar 3 Sesi</td>
+              <td><b>14:00</b></td>
+              <td><b>16:00</b></td>
+              <td>2</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+            <tr>
+              <td class="num">3</td>
+              <td>Standar 3 Sesi</td>
+              <td><b>18:00</b></td>
+              <td><b>20:00</b></td>
+              <td>3</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+            <tr>
+              <td class="num">4</td>
+              <td>Jastip 2 Sesi</td>
+              <td><b>10:00</b></td>
+              <td><b>14:00</b></td>
+              <td>1</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+            <tr>
+              <td class="num">5</td>
+              <td>Jastip 2 Sesi</td>
+              <td><b>16:00</b></td>
+              <td><b>19:00</b></td>
+              <td>2</td>
+              <td><span class="badge-aktif">Aktif</span></td>
+              <td>14-JUL-2026</td>
+              <td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <div>Showing 1 to 5 of 5 entries</div>
+          <div class="pagination-btns">
+            <button>Previous</button>
+            <button class="active">1</button>
+            <button>Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PROPERTI ── -->
+  <div id="page-properti" class="page-section">
+    <div class="page-header">
+      <div>
+        <h5>Master Properti</h5>
+        <div class="breadcrumb-text">Pemesanan › Master › Properti</div>
+      </div>
+      <div class="btn-group-top">
+        <button class="btn-export"><i class="fa fa-download"></i> Export</button>
+        <button class="btn-tambah"><i class="fa fa-plus"></i> Tambah</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="table-controls">
+          <div class="show-entries">Show <select><option>10</option><option>25</option></select> entries</div>
+          <div class="search-box"><label>Search:</label><input type="text" placeholder="Cari properti..."></div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama Properti <span class="sort-icon">↕</span></th>
+              <th>Latitude <span class="sort-icon">↕</span></th>
+              <th>Longitude <span class="sort-icon">↕</span></th>
+              <th>In Jogja <span class="sort-icon">↕</span></th>
+              <th>Terakhir Diubah <span class="sort-icon">↕</span></th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="num">1</td><td>D'Paragon Kemuning</td><td style="font-family:monospace;font-size:11px">-7.7592146</td><td style="font-family:monospace;font-size:11px">110.4062187</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">2</td><td>D'Paragon Seturan 1</td><td style="font-family:monospace;font-size:11px">-7.7659175</td><td style="font-family:monospace;font-size:11px">110.4117101</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">3</td><td>D'Paragon Seturan 2</td><td style="font-family:monospace;font-size:11px">-7.7657432</td><td style="font-family:monospace;font-size:11px">110.4094303</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">4</td><td>D'Paragon Seturan 3</td><td style="font-family:monospace;font-size:11px">-7.7653702</td><td style="font-family:monospace;font-size:11px">110.4088858</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">5</td><td>D'Paragon Karangmalang</td><td style="font-family:monospace;font-size:11px">-7.7707896</td><td style="font-family:monospace;font-size:11px">110.3865198</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">6</td><td>D'Paragon UPN</td><td style="font-family:monospace;font-size:11px">-7.7634831</td><td style="font-family:monospace;font-size:11px">110.4066965</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">7</td><td>D'Paragon Pogung F</td><td style="font-family:monospace;font-size:11px">-7.7584543</td><td style="font-family:monospace;font-size:11px">110.3786137</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">8</td><td>D'Paragon Malioboro</td><td style="font-family:monospace;font-size:11px">-7.7881918</td><td style="font-family:monospace;font-size:11px">110.3641867</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">9</td><td>D'Paragon Pamela 1</td><td style="font-family:monospace;font-size:11px">-7.7522668</td><td style="font-family:monospace;font-size:11px">110.4112760</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+            <tr><td class="num">10</td><td>D'Kraton Villa Mantrijeron</td><td style="font-family:monospace;font-size:11px">-7.8172833</td><td style="font-family:monospace;font-size:11px">110.3642616</td><td><span class="badge-aktif">Ya</span></td><td>14-JUL-2026</td><td><button class="btn-edit"><i class="fa fa-pen"></i></button> <button class="btn-del"><i class="fa fa-trash"></i></button></td></tr>
+          </tbody>
+        </table>
+        <div class="table-footer">
+          <div>Showing 1 to 10 of 14 entries</div>
+          <div class="pagination-btns">
+            <button>Previous</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PLACEHOLDER PAGES ── -->
+  <div id="page-dashboard" class="page-section">
+    <div class="page-header"><div><h5>Menu Utama</h5></div></div>
+    <div class="card"><div class="card-body" style="color:#8592a6;padding:40px;text-align:center"><i class="fa fa-house" style="font-size:32px;display:block;margin-bottom:12px"></i>Dashboard Pemesanan</div></div>
+  </div>
+  <div id="page-pesanan" class="page-section">
+    <div class="page-header"><div><h5>Pesanan Masuk</h5></div></div>
+    <div class="card"><div class="card-body" style="color:#8592a6;padding:40px;text-align:center"><i class="fa fa-list-check" style="font-size:32px;display:block;margin-bottom:12px"></i>Daftar Pesanan Masuk</div></div>
+  </div>
+  <div id="page-laporan" class="page-section">
+    <div class="page-header"><div><h5>Laporan</h5></div></div>
+    <div class="card"><div class="card-body" style="color:#8592a6;padding:40px;text-align:center"><i class="fa fa-chart-line" style="font-size:32px;display:block;margin-bottom:12px"></i>Laporan & Statistik</div></div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+  const pages = ['toko','kategori','item','delivery-group','delivery-slot','properti','dashboard','pesanan','laporan'];
+
+  function showPage(name) {
+    pages.forEach(p => {
+      document.getElementById('page-' + p).classList.remove('active');
+    });
+    document.getElementById('page-' + name).classList.add('active');
+
+    document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
+    const navEl = document.getElementById('nav-' + name);
+    if (navEl) navEl.classList.add('active');
+
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    if (!navEl) {
+      event && event.currentTarget && event.currentTarget.classList.add('active');
+    }
+  }
+
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', function() {
+      document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.sub-item').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
